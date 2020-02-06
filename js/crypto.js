@@ -109,8 +109,6 @@ window.onload = function() {
         var privateKey = base64urlToArrayBuffer(privateKeyBase64url);
         var data = new TextEncoder("utf-8").encode(dataString);
 
-        console.log(publicKey);
-
         sign(privateKey, data).then(function(signature) {
             signatureResultElem.innerText = arrayBufferToBase64url(signature);
 
