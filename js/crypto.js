@@ -57,36 +57,67 @@ var arrayBufferToBase64url = function(arrayBuffer) {
     return base64url;
 };
 
-window.onload = function() {
-    var submitButton = document.getElementById("submit");
+var verify = function(publicKey, signature, data) {
+    return new Promise((resolve) => {
+        crypto.subtle.importKey(
+            "raw", publicKey,
+            { name: "ECDSA", namedCurve: "P-256" },
+            false, ["verify"])
+            .then(function(publicKey) {
+                crypto.subtle.verify(
+                    { name: "ECDSA", hash : {name: "SHA-256"} },
+                    // { name: "ECDSA", hash : "SHA-256"},
+                    publicKey, signature, data)
+                    .then(resolve);
+            });
+    });
+};
 
-    submitButton.onclick = function(e) {
-        var privateKeyBase64urlElem =
-            document.getElementById("privateKeyBase64url");
-        var dataStringElem = document.getElementById("dataString");
-        var resultElem = document.getElementById("signature");
-
-        var privateKeyBase64url = privateKeyBase64urlElem.value;
-        var dataString = dataStringElem.value;
-
-        var privateKey = base64urlToArrayBuffer(privateKeyBase64url);
-        var data = base64urlToArrayBuffer(dataString);
-
+var sign = function(privateKey, data) {
+    return new Promise((resolve) => {
         crypto.subtle.importKey(
             "pkcs8", privateKey,
             { name: "ECDSA", namedCurve: "P-256" },
             false, ["sign"])
             .then(function(privateKey) {
                 crypto.subtle.sign(
-                    // { name: "ECDSA", hash : {name: "SHA-256"} },
-                    { name: "ECDSA", hash : "SHA-256"},
+                    { name: "ECDSA", hash : {name: "SHA-256"} },
+                    // { name: "ECDSA", hash : "SHA-256"},
                     privateKey, data)
-                    .then(function(signature) {
-                        resultElem.innerText =
-                            arrayBufferToBase64url(signature);
-                    });
+                    .then(resolve);
             });
+    });
+};
 
+window.onload = function() {
+    var submitButton = document.getElementById("submit");
+
+    submitButton.onclick = function(e) {
+        var publicKeyBase64urlElem =
+            document.getElementById("publicKeyBase64url");
+        var privateKeyBase64urlElem =
+            document.getElementById("privateKeyBase64url");
+        var dataStringElem = document.getElementById("dataString");
+        var signatureResultElem = document.getElementById("signature");
+        var verifiedResultElem = document.getElementById("verified");
+
+        var publicKeyBase64url = publicKeyBase64urlElem.value;
+        var privateKeyBase64url = privateKeyBase64urlElem.value;
+        var dataString = dataStringElem.value;
+
+        var publicKey = base64urlToArrayBuffer(publicKeyBase64url);
+        var privateKey = base64urlToArrayBuffer(privateKeyBase64url);
+        var data = new TextEncoder("utf-8").encode(dataString);
+
+        console.log(publicKey);
+
+        sign(privateKey, data).then(function(signature) {
+            signatureResultElem.innerText = arrayBufferToBase64url(signature);
+
+            verify(publicKey, signature, data).then(function(verified) {
+                verifiedResultElem.innerText = verified;
+            });
+        });
     };
 }
 

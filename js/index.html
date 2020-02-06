@@ -6,14 +6,21 @@
     </head>
 
     <body>
+        <label>Public Key (Base64url)</label>
+        <br />
+        <input id="publicKeyBase64url"
+            value="BO1FJT1Osp9w9Rslm8otzcKRdJ80Og3rGly2gDk0grXDlRTSRLdy7feEMenq3JFn6oEhUzztG6ZVHMtJCLAl5jI=" />
+        <br />
+        <br />
         <label>Private Key (Base64url)</label>
         <br />
-        <input id="privateKeyBase64url" />
+        <input id="privateKeyBase64url"
+            value="MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgudaJW8fW9e-Im-LK1pbZygKAfQ5xao8vm4jHOWWUVyGhRANCAATtRSU9TrKfcPUbJZvKLc3CkXSfNDoN6xpctoA5NIK1w5UU0kS3cu33hDHp6tyRZ-qBIVM87RumVRzLSQiwJeYy" />
         <br />
         <br />
         <label>String to sign</label>
         <br />
-        <input id="dataString" />
+        <input id="dataString" value="test" />
         <br />
         <br />
         <button id="submit">
@@ -22,6 +29,9 @@
         <br />
         <p>Signature: </p>
         <p id="signature" ></p>
+        <br />
+        <p>Verified: </p>
+        <p id="verified" ></p>
     </body>
 </html>
 
