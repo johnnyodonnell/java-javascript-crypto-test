@@ -90,32 +90,48 @@ var sign = function(privateKey, data) {
 };
 
 window.onload = function() {
-    var submitButton = document.getElementById("submit");
+    var signButton = document.getElementById("sign");
 
-    submitButton.onclick = function(e) {
-        var publicKeyBase64urlElem =
-            document.getElementById("publicKeyBase64url");
+    signButton.onclick = function(e) {
         var privateKeyBase64urlElem =
             document.getElementById("privateKeyBase64url");
         var dataStringElem = document.getElementById("dataString");
-        var signatureResultElem = document.getElementById("signature");
-        var verifiedResultElem = document.getElementById("verified");
+        var signatureBase64urlElem =
+            document.getElementById("signatureBase64url");
 
-        var publicKeyBase64url = publicKeyBase64urlElem.value;
         var privateKeyBase64url = privateKeyBase64urlElem.value;
         var dataString = dataStringElem.value;
+        var signatureBase64url = signatureBase64urlElem.value;
 
-        var publicKey = base64urlToArrayBuffer(publicKeyBase64url);
         var privateKey = base64urlToArrayBuffer(privateKeyBase64url);
         var data = new TextEncoder("utf-8").encode(dataString);
 
         sign(privateKey, data).then(function(signature) {
-            signatureResultElem.innerText = arrayBufferToBase64url(signature);
-
-            verify(publicKey, signature, data).then(function(verified) {
-                verifiedResultElem.innerText = verified;
-            });
+            signatureBase64urlElem.value = arrayBufferToBase64url(signature);
         });
     };
+
+    var verifyButton = document.getElementById("verify");
+
+    verifyButton.onclick = function(e) {
+        var publicKeyBase64urlElem =
+            document.getElementById("publicKeyBase64url");
+        var dataStringElem = document.getElementById("dataString");
+        var signatureBase64urlElem =
+            document.getElementById("signatureBase64url");
+        var verifiedResultElem = document.getElementById("verified");
+
+        var publicKeyBase64url = publicKeyBase64urlElem.value;
+        var dataString = dataStringElem.value;
+        var signatureBase64url = signatureBase64urlElem.value;
+
+        var publicKey = base64urlToArrayBuffer(publicKeyBase64url);
+        var data = new TextEncoder("utf-8").encode(dataString);
+        var signature = base64urlToArrayBuffer(signatureBase64url);
+
+        verify(publicKey, signature, data).then(function(verified) {
+            verifiedResultElem.innerText = verified;
+        });
+    }
 }
 
