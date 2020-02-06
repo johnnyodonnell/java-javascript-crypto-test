@@ -14,15 +14,16 @@ import java.util.Base64;
 class Verify {
 
     public static void main(String[] args) throws Exception {
-        String publicKeyBase64url = args[0];
-        String signatureToVerifyBase64url = args[1];
-        String text = args[2];
+        String publicKeyBase64url =
+            "BO1FJT1Osp9w9Rslm8otzcKRdJ80Og3rGly2gDk0grXDlRTSRLdy7feEMenq3JFn6oEhUzztG6ZVHMtJCLAl5jI=";
+        String text = "test";
+        String signatureToVerifyBase64url = args[0];
 
         System.out.println(
                 "Public Key (Base64url): " + publicKeyBase64url);
+        System.out.println("Text: " + text);
         System.out.println(
                 "Signature (Base64url): " + signatureToVerifyBase64url);
-        System.out.println("Text: " + text);
 
         byte[] publicKey =
             Base64.getUrlDecoder().decode(publicKeyBase64url);
@@ -30,8 +31,8 @@ class Verify {
             Base64.getUrlDecoder().decode(signatureToVerifyBase64url);
         byte[] data = text.getBytes(StandardCharsets.UTF_8);
 
-        byte[] x = Arrays.copyOfRange(publicKey, 27, 59);
-        byte[] y = Arrays.copyOfRange(publicKey, 59, 91);
+        byte[] x = Arrays.copyOfRange(publicKey, 1, 33);
+        byte[] y = Arrays.copyOfRange(publicKey, 33, 65);
 
         ECPoint ecPoint = new ECPoint(new BigInteger(x), new BigInteger(y));
 
