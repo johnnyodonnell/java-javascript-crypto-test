@@ -57,6 +57,71 @@ var arrayBufferToBase64url = function(arrayBuffer) {
     return base64url;
 };
 
+var trimParam = function(param) {
+    while ((param[0] === 0) && (param[1] >= 0)) {
+        subSig = subSig.slice(1);
+    }
+};
+
+var IEEEtoDER = function(IEEESig) {
+    IEEESig = new Int8Array(IEEESig);
+
+    var paramSize = IEEESig.length / 2;
+
+    var r = IEEESig.slice(0, paramSize);
+    var s = IEEESig.slice(paramSize);
+
+    trimParam(r);
+    trimParam(s);
+
+    var rsLength = r.length + s.length;
+
+    var result = new Uint8Array(6 + rsLength);
+    result[0] = 0x30;
+    result[1] = rsLength + 4;
+    result[2] = 0x02;
+    result[3] = r.length;
+    result.set(r, 4);
+    result[r.length + 4] = 0x02;
+    result[r.length + 5] = s.length;
+    result.set(s, r.length + 6);
+
+    return result;
+};
+
+var DERtoIEEE = function(DERSig) {
+    DERSig = new Int8Array(DERSig);
+
+    var rLength = DERSig[3];
+    var beg = 4;
+    var end = beg + rLength;
+    var r = DERSig.slice(beg, end);
+
+    var sLength = DERSig[rLength + 5];
+    var beg = rLength + 6;
+    var end = beg + sLength;
+    var s = DERSig.slice(beg, end);
+
+    var rPad = new Uint8Array();
+    while ((rPad.length + r.length) < s.length) {
+        rPad = new Uint8Array(rPad.length + 1);
+    }
+
+    var sPad = new Uint8Array();
+    while ((sPad.length + s.length) < r.length) {
+        sPad = new Uint8Array(sPad.length + 1);
+    }
+
+    var result =
+        new Uint8Array(rPad.length + r.length + sPad.length + s.length);
+    result.set(rPad, 0);
+    result.set(r, rPad.length);
+    result.set(sPad, rPad.length + r.length);
+    result.set(s, rPad.length + r.length + sPad.length);
+
+    return result;
+};
+
 var verify = function(publicKey, signature, data) {
     return new Promise((resolve) => {
         crypto.subtle.importKey(
@@ -81,8 +146,7 @@ var sign = function(privateKey, data) {
             false, ["sign"])
             .then(function(privateKey) {
                 crypto.subtle.sign(
-                    { name: "ECDSA", hash : {name: "SHA-256"} },
-                    // { name: "ECDSA", hash : "SHA-256"},
+                    { name: "ECDSA", hash : "SHA-256"},
                     privateKey, data)
                     .then(resolve);
             });
@@ -107,6 +171,7 @@ window.onload = function() {
         var data = new TextEncoder("utf-8").encode(dataString);
 
         sign(privateKey, data).then(function(signature) {
+            signature = IEEEtoDER(signature);
             signatureBase64urlElem.value = arrayBufferToBase64url(signature);
         });
     };
@@ -127,7 +192,7 @@ window.onload = function() {
 
         var publicKey = base64urlToArrayBuffer(publicKeyBase64url);
         var data = new TextEncoder("utf-8").encode(dataString);
-        var signature = base64urlToArrayBuffer(signatureBase64url);
+        var signature = DERtoIEEE(base64urlToArrayBuffer(signatureBase64url));
 
         verify(publicKey, signature, data).then(function(verified) {
             verifiedResultElem.innerText = verified;
